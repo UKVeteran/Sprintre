@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog
 from PyPDF2 import PdfReader
-import time
+from docx import Document  
+import os
 
 class SprintReader:
     def __init__(self, root):
@@ -21,26 +22,34 @@ class SprintReader:
         self.speed_slider.set(300)  # Initial speed
         self.speed_slider.pack()
 
-        self.upload_button = tk.Button(self.root, text="Upload PDF", command=self.upload_pdf)
+        self.upload_button = tk.Button(self.root, text="Upload File", command=self.upload_file)
         self.upload_button.pack()
 
-        self.pdf_file = None
+        self.file_path = None
         self.reading = False
         self.words = []
         self.index = 0
         self.after_id = None
         
-    def upload_pdf(self):
-        file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
+    def upload_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf"), ("Text files", "*.txt"), ("Word files", "*.docx")])
         if file_path:
-            self.pdf_file = file_path
+            self.file_path = file_path
             self.text.delete("1.0", tk.END)
-            pdf_reader = PdfReader(file_path)
-            text_content = ""
-            for page in pdf_reader.pages:
-                text_content += page.extract_text()
-            self.text.insert(tk.END, text_content)
-            self.words = text_content.split()
+            
+            # Determine the file type and read accordingly
+            if file_path.endswith(".pdf"):
+                pdf_reader = PdfReader(file_path)
+                text_content = ""
+                for page in pdf_reader.pages:
+                    text_content += page.extract_text()
+                self.text.insert(tk.END, text_content)
+                self.words = text_content.split()
+            elif file_path.endswith((".txt", ".docx")):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    text_content = file.read()
+                    self.text.insert(tk.END, text_content)
+                    self.words = text_content.split()
                 
     def toggle_start_stop(self):
         if not self.reading:
