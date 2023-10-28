@@ -8,5 +8,6 @@ Designed to enhance reading efficiency and comprehension by displaying text one 
 import tkinter as tk
 from tkinter import filedialog
 from PyPDF2 import PdfReader
-import time
+from docx import Document
+import os
 ```
