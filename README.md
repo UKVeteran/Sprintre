@@ -6,7 +6,7 @@ Designed to enhance reading efficiency and comprehension by displaying text one 
 ```python 
 import tkinter as tk
 from tkinter import filedialog
-import fitz  # PyMuPDF
+import fitz
 from PyPDF2 import PdfReader
 from time import sleep
 ```
