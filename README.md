@@ -4,9 +4,7 @@ Designed to enhance reading efficiency and comprehension by displaying text one 
 
 ## Install
 
-```python 
-pip install fitz
-```
+
 
 ## Import Libraries
 
