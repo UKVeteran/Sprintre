@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import filedialog
 from PyPDF2 import PdfReader
 from docx import Document
-import os
 
 class SprintReader:
     def __init__(self, root):
@@ -13,10 +12,16 @@ class SprintReader:
         self.text.pack(pady=10, padx=10)
 
         self.text.tag_configure('center', justify='center')
-        self.text.tag_configure('middle_letter', foreground='red')
+        self.text.tag_configure('middle_letter', foreground='blue')  # Change highlight color to blue
 
-        self.start_stop_button = tk.Button(self.root, text="Start", command=self.toggle_start_stop, width=20, height=2, font=("Arial", 20))
-        self.start_stop_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.start_button = tk.Button(self.root, text="Start", command=self.start_reading, width=20, height=2, font=("Arial", 20))
+        self.start_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.pause_button = tk.Button(self.root, text="Pause", command=self.pause_reading, state=tk.DISABLED, width=20, height=2, font=("Arial", 20))
+        self.pause_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.resume_button = tk.Button(self.root, text="Resume", command=self.resume_reading, state=tk.DISABLED, width=20, height=2, font=("Arial", 20))
+        self.resume_button.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.speed_label = tk.Label(self.root, text="Speed (words per minute):", font=("Arial", 20))
         self.speed_label.pack()
@@ -28,8 +33,21 @@ class SprintReader:
         self.upload_button = tk.Button(self.root, text="Upload File", command=self.upload_file, width=20, height=2, font=("Arial", 20))
         self.upload_button.pack(side=tk.RIGHT, padx=5, pady=5)
 
+        self.highlight_color_label = tk.Label(self.root, text="Highlight Color:", font=("Arial", 20))  # Fix the label text
+        self.highlight_color_label.pack()
+
+        self.highlight_color = tk.StringVar()
+        self.highlight_color.set('blue')  # Change the default highlight color to blue
+
+        self.color_radio_blue = tk.Radiobutton(self.root, text="Blue", variable=self.highlight_color, value='blue', font=("Arial", 18))
+        self.color_radio_blue.pack(anchor=tk.W)
+
+        self.color_radio_red = tk.Radiobutton(self.root, text="Red", variable=self.highlight_color, value='red', font=("Arial", 18))
+        self.color_radio_red.pack(anchor=tk.W)
+
         self.file_path = None
         self.reading = False
+        self.pause = False
         self.words = []
         self.index = 0
         self.after_id = None
@@ -40,7 +58,6 @@ class SprintReader:
             self.file_path = file_path
             self.text.delete("1.0", tk.END)
 
-            # Determine the file type and read accordingly
             if file_path.endswith(".pdf"):
                 pdf_reader = PdfReader(file_path)
                 text_content = ""
@@ -49,21 +66,37 @@ class SprintReader:
                 self.text.insert(tk.END, text_content)
                 self.words = text_content.split()
             elif file_path.endswith((".txt", ".docx")):
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    text_content = file.read()
-                    self.text.insert(tk.END, text_content)
-                    self.words = text_content.split()
+                if file_path.endswith(".txt"):
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        text_content = file.read()
+                elif file_path.endswith(".docx"):
+                    doc = Document(file_path)
+                    text_content = " ".join([para.text for para in doc.paragraphs])
+                self.text.insert(tk.END, text_content)
+                self.words = text_content.split()
 
-    def toggle_start_stop(self):
+    def start_reading(self):
         if not self.reading:
             self.reading = True
-            self.start_stop_button.config(text="Stop")
+            self.start_button.config(state=tk.DISABLED)
+            self.pause_button.config(state=tk.NORMAL)
+            self.resume_button.config(state=tk.DISABLED)
             self.read_word()
-        else:
-            self.reading = False
-            self.start_stop_button.config(text="Start")
+
+    def pause_reading(self):
+        if self.reading and not self.pause:
+            self.pause = True
+            self.pause_button.config(state=tk.DISABLED)
+            self.resume_button.config(state=tk.NORMAL)
             if self.after_id:
                 self.root.after_cancel(self.after_id)
+
+    def resume_reading(self):
+        if self.reading and self.pause:
+            self.pause = False
+            self.pause_button.config(state=tk.NORMAL)
+            self.resume_button.config(state=tk.DISABLED)
+            self.read_word()
 
     def read_word(self):
         if self.reading and self.index < len(self.words):
@@ -73,21 +106,21 @@ class SprintReader:
             self.text.insert(tk.END, newlines + word)
             self.text.tag_add('center', '1.0', 'end')
 
-            #determine word length to place red letter (needs "red_letter" and a "stop_point", which is the letter right after)
-            #behaviour differs depending on odd or even number of letters in word
             word_len = len(self.words[self.index])
-            if word_len % 2 == 0:
-                red_letter = "6." + str((word_len // 2) - 1)
-                stop_point = "6." + str((word_len // 2) + 0)
-            else:
-                red_letter = "6." + str((word_len // 2) - 0)
-                stop_point = "6." + str((word_len // 2) + 1)
+            middle = word_len // 2
+            red_letter = f"6.{middle - 1}"
+            stop_point = f"6.{middle + 1}"
             self.text.tag_add('middle_letter', red_letter, stop_point)
+            self.text.tag_configure('middle_letter', foreground=self.highlight_color.get())
 
             self.index += 1
-            self.after_id = self.root.after(int(60000 / self.speed_slider.get()), self.read_word)
+            if not self.pause:
+                self.after_id = self.root.after(int(60000 / self.speed_slider.get()), self.read_word)
         else:
-            self.toggle_start_stop()  # Stop reading when reaching the end
+            self.reading = False
+            self.start_button.config(state=tk.NORMAL)
+            self.pause_button.config(state=tk.DISABLED)
+            self.resume_button.config(state=tk.DISABLED)
 
 def main():
     root = tk.Tk()
