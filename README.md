@@ -34,4 +34,5 @@ import os
 
 # Sprintre In Action
 
-![Sprintre in Action](SpeedReaderInAction.png)
+![modifiedsprintre](https://github.com/UKVeteran/Sprintre/assets/39216339/0a2a1f79-870d-48e9-9674-bfad1b0c389c)
+
