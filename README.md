@@ -25,6 +25,15 @@ from docx import Document
 import os
 ```
 
+## Added Features
+-) Font Selection
+
+-) Pause and Resume
+
+-) Custom Highlight Color: Red or Blue
+
+-) Progress Indicator
+
 # Sprintre In Action
 
 ![Sprintre in Action](SpeedReaderInAction.png)
