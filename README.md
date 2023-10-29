@@ -25,9 +25,7 @@ from docx import Document
 import os
 ```
 
-## Added Features
--) Font Selection
-
+## Added Feature
 -) Pause and Resume
 
 -) Custom Highlight Color: Red or Blue
