@@ -32,8 +32,6 @@ import os
 
 -) Custom Highlight Color: Red or Blue
 
--) Progress Indicator
-
 # Sprintre In Action
 
 ![Sprintre in Action](SpeedReaderInAction.png)
